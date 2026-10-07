@@ -254,6 +254,33 @@ section{padding:96px 0;position:relative}
 }
 .toast.show{transform:translate(-50%,0)}
 
+/* Download celebration */
+.celebration{
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;
+  background:rgba(8,8,18,.78);backdrop-filter:blur(10px);
+  opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s ease;
+}
+.celebration.show{opacity:1;visibility:visible}
+.celebration-card{
+  position:relative;isolation:isolate;overflow:hidden;width:min(100%,460px);padding:42px 30px 30px;
+  text-align:center;border:1px solid var(--card-border);border-radius:28px;
+  background:radial-gradient(120% 100% at 50% 0%,rgba(139,92,246,.2),transparent 55%),var(--card);
+  box-shadow:var(--shadow);transform:translateY(18px) scale(.97);transition:transform .35s cubic-bezier(.2,1.2,.3,1);
+}
+.celebration.show .celebration-card{transform:none}
+.celebration-card h2{font-size:clamp(1.65rem,7vw,2.2rem);line-height:1.15;margin:18px 0 12px}
+.celebration-card p{position:relative;z-index:2;color:var(--muted);font-size:.98rem;line-height:1.65}
+.celebration-card .congrats-icon{font-size:3rem;line-height:1;filter:drop-shadow(0 8px 20px rgba(255,95,143,.35))}
+.celebration-card .btn{position:relative;z-index:2;margin-top:24px;justify-content:center;min-width:140px}
+.celebration-close{position:absolute;z-index:3;right:14px;top:14px;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--bg-soft);color:var(--text);font-size:1.2rem;cursor:pointer}
+.fireworks{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.firework{position:absolute;top:35%;left:50%;width:4px;height:4px;border-radius:50%;opacity:0;animation:firework 1.8s ease-out infinite}
+.firework::before{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:var(--hue-1);box-shadow:0 -38px var(--hue-1),27px -27px var(--hue-3),38px 0 var(--hue-2),27px 27px var(--hue-4),0 38px var(--hue-3),-27px 27px var(--hue-1),-38px 0 var(--hue-4),-27px -27px var(--hue-2),19px -35px #fff,-19px 35px #fff}
+.firework:nth-child(1){left:22%;top:32%;animation-delay:.1s}
+.firework:nth-child(2){left:78%;top:40%;animation-delay:.65s;transform:scale(.75)}
+.firework:nth-child(3){left:52%;top:22%;animation-delay:1.2s;transform:scale(.55)}
+@keyframes firework{0%{opacity:0;transform:scale(.25)}15%{opacity:1}75%{opacity:.8}100%{opacity:0;transform:scale(1.15)}}
+
 /* Privacy */
 .privacy-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
 .privacy-list{display:flex;flex-direction:column;gap:16px;margin-top:34px}
@@ -557,6 +584,18 @@ footer{border-top:1px solid var(--card-border);padding:44px 0}
 
 <div class="toast" id="toast">Link copied — go spread some Hue 🎨</div>
 
+<div class="celebration" id="downloadCelebration" aria-hidden="true">
+  <div class="celebration-card" role="dialog" aria-modal="true" aria-labelledby="celebrationTitle" aria-describedby="celebrationMessage">
+    <div class="fireworks" aria-hidden="true"><span class="firework"></span><span class="firework"></span><span class="firework"></span></div>
+    <button class="celebration-close" id="celebrationClose" type="button" aria-label="Close message">×</button>
+    <div class="congrats-icon" aria-hidden="true">🎉</div>
+    <h2 id="celebrationTitle">Congrats, you're now a member!</h2>
+    <p id="celebrationMessage">Your Hue download is starting. Wait for it to finish, then open the downloaded file and install Hue.</p>
+    <p style="margin-top:10px;color:var(--text);font-weight:700">Yessss — welcome to Hue! 🎨</p>
+    <button class="btn btn-primary" id="celebrationDone" type="button">Awesome!</button>
+  </div>
+</div>
+
 <script>
 /* ---------- Reveal on scroll ---------- */
 const io = new IntersectionObserver(entries => {
@@ -580,6 +619,24 @@ const shareData = {
 };
 const toast = document.getElementById('toast');
 function showToast(){ toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 2600); }
+
+/* ---------- Download celebration ---------- */
+const celebration = document.getElementById('downloadCelebration');
+function showCelebration(){
+  celebration.classList.add('show');
+  celebration.setAttribute('aria-hidden','false');
+  document.getElementById('celebrationClose').focus();
+}
+function hideCelebration(){
+  celebration.classList.remove('show');
+  celebration.setAttribute('aria-hidden','true');
+  document.getElementById('dlBtn').focus();
+}
+document.getElementById('dlBtn').addEventListener('click', showCelebration);
+document.getElementById('celebrationClose').addEventListener('click', hideCelebration);
+document.getElementById('celebrationDone').addEventListener('click', hideCelebration);
+celebration.addEventListener('click', e => { if (e.target === celebration) hideCelebration(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && celebration.classList.contains('show')) hideCelebration(); });
 
 document.getElementById('shareBtn').addEventListener('click', async () => {
   if (navigator.share) {
